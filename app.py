@@ -1,4 +1,6 @@
 import streamlit as st
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 from data_loader import load_expense_data
 from preprocessing import preprocess_data
@@ -18,7 +20,7 @@ st.set_page_config(
 )
 
 st.title("💰 AI Financial Expense Analyzer")
-st.write("Upload your expense CSV file to analyze spending patterns.")
+st.write("Upload your expense CSV/Excel file to analyze spending patterns.")
 
 uploaded_file = st.file_uploader(
     "📂 Upload Expense File (CSV or Excel)",
@@ -77,7 +79,7 @@ if uploaded_file is not None:
                 st.pyplot(plot_category_spending(category_spending(df)))
 
             with col2:
-                months_with_anomalies = anomaly_months(df)
+                months_with_anomalies = anomaly_months(df, contamination=sensitivity)
 
                 st.pyplot(
                     plot_monthly_spending_with_anomalies(
@@ -95,28 +97,11 @@ if uploaded_file is not None:
             prediction = predict_next_month_expense(df)
             st.success(f"Predicted Next Month Expense: ₹{prediction:,.2f}")
 
-            st.subheader("💬 Ask the AI about your data")
-
-            user_query = st.text_input(
-                "Ask a question (e.g. 'Explain my data', 'Where am I spending most?')"
-            )
-            if user_query:
-                explanations = explain_data(df, anomalies, prediction)
-
-                st.markdown("### 🧠 AI Explanation")
-                for line in explanations:
-                    st.write("•", line)
-
-
-
         except Exception as e:
             st.error(f"Error: {e}")
-    
+
     # ---------- ANOMALY SECTION ----------
         st.subheader("📌 Categories with Unusual Spending")
-
-       
-
 
         if anomalies.empty:
             st.success("No unusual spending detected 🎉")
@@ -145,3 +130,41 @@ if uploaded_file is not None:
                 file_name="anomaly_report.pdf",
                 mime="application/pdf"
             )
+
+        
+        st.divider()
+        st.subheader("💬 Chat with your data")
+
+        if st.button("🧹 Clear Chat", key="clear_chat_btn"):
+            st.session_state.messages = []
+            st.rerun()
+
+        # Show previous messages
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # Chat input at the very bottom
+        user_prompt = st.chat_input(
+            "Ask things like: Explain my data, Where am I spending most, Why anomalies?"
+        )
+
+        if user_prompt:
+            st.session_state.messages.append({
+                "role": "user",
+                "content": user_prompt
+            })
+
+            with st.chat_message("user"):
+                st.markdown(user_prompt)
+
+            explanations = explain_data(df, anomalies, prediction)
+            ai_response = "\n".join([f"• {line}" for line in explanations])
+
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": ai_response
+            })
+
+            with st.chat_message("assistant"):
+                st.markdown(ai_response)
