@@ -32,13 +32,26 @@ st.info(
     "Required columns: date, category, amount, description\n"
     "Date format: YYYY-MM-DD"
 )
-with open("sample_data/expenses.csv", "r") as f:
-    st.download_button(
-        label="⬇️ Download Sample CSV",
-        data=f,
-        file_name="sample_expenses.csv",
-        mime="text/csv"
-    )
+SAMPLE_CSV = """date,category,amount,description
+2025-01-02,Food,250,Lunch at restaurant
+2025-01-05,Transport,120,Metro ticket
+2025-01-07,Shopping,1800,Clothes purchase
+2025-01-10,Food,300,Dinner
+2025-01-15,Entertainment,500,Movie night
+2025-02-03,Food,270,Lunch
+2025-02-06,Transport,150,Cab ride
+2025-02-10,Shopping,2200,Shoes
+2025-02-15,Entertainment,700,Concert
+2025-02-20,Bills,3500,Electricity bill
+"""
+
+st.download_button(
+    label="⬇️ Download Sample CSV",
+    data=SAMPLE_CSV,
+    file_name="sample_expenses.csv",
+    mime="text/csv"
+)
+
 
 
 if uploaded_file is not None:
