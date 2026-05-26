@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Financial Expense Analyzer</title>
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Background Glow -->
+    <div class="bg-glow"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            💰 FinAI Dashboard
+        </div>
+
+        <div class="nav-links">
+            <span>AI Analytics</span>
+            <span>Expense Tracking</span>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Hero -->
+        <section class="hero glass">
+            <h1>AI Financial Expense Analyzer</h1>
+
+            <p>
+                AI-powered anomaly detection,
+                smart insights & expense forecasting
+            </p>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="upload-section glass">
+
+            <h2>📂 Upload Expense File</h2>
+
+            <input type="file" id="fileInput">
+
+            <button
+                id="analyzeBtn"
+                type="button"
+                onclick="uploadFile()">
+
+                Analyze Expenses
+            </button>
+
+            <div id="loader" class="loader hidden"></div>
+
+            <p id="statusText"></p>
+
+        </section>
+
+        <!-- KPI Cards -->
+        <section class="cards">
+
+            <div class="card glass">
+                <h3>Total Spending</h3>
+                <h2 id="totalSpending">₹0</h2>
+                <p>Overall financial usage</p>
+            </div>
+
+            <div class="card glass">
+                <h3>Prediction</h3>
+                <h2 id="prediction">₹0</h2>
+                <p>Next month estimation</p>
+            </div>
+
+            <div class="card glass">
+                <h3>Anomalies</h3>
+                <h2 id="anomalies">0</h2>
+                <p>Unusual transactions</p>
+            </div>
+
+        </section>
+
+        <!-- Charts -->
+        <section class="charts">
+
+            <div class="chart-container glass">
+                <h2>📊 Category Spending</h2>
+                <canvas id="categoryChart"></canvas>
+            </div>
+
+            <div class="chart-container glass">
+                <h2>📈 Monthly Trends</h2>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+
+        </section>
+
+        <!-- AI Insights -->
+        <section class="insights glass">
+
+            <h2>🧠 AI Insights</h2>
+
+            <ul id="insightList"></ul>
+
+        </section>
+
+    </div>
+
+    <script defer
+        src="{{ url_for('static', filename='script.js') }}">
+    </script>
+
+</body>
+
+</html>
