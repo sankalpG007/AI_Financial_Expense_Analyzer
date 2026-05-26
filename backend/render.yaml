@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: ai-financial-expense-analyzer
+    env: python
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "gunicorn --chdir backend app:app"
