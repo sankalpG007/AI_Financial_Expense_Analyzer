@@ -1,112 +1,163 @@
 # 💰 AI Financial Expense Analyzer
 
-An end-to-end **AI-powered financial analytics application** that helps users analyze expenses, detect unusual spending patterns, and forecast future expenses — all through an interactive Streamlit dashboard.
-
-This project combines **data analysis, machine learning, anomaly detection, and modern UI/UX** to simulate a real-world fintech analytics tool.
+An AI-powered fintech dashboard that analyzes expense data, detects anomalies, predicts future spending, and generates smart financial insights using Machine Learning and Data Analytics.
 
 ---
 
 ## 🚀 Features
 
-### 📊 Expense Analysis
-- Total spending overview
-- Category-wise expense breakdown
-- Monthly spending trends
-
-### 🤖 AI Insights
-- Automatically generated insights from spending data
-- Highlights dominant expense categories and trends
-
-### 🔮 Expense Forecasting
-- Predicts next month’s expenses using:
-  - Linear Regression
-  - Smoothed (rolling-average) forecasting
-- Handles real-world constraints (no negative predictions)
-
-### 🚨 Anomaly Detection (Advanced)
-- Detects unusual or suspicious expenses using **Isolation Forest**
-- **User-controlled sensitivity slider** to adjust strictness
-- Anomalies highlighted directly on charts
-
-### 📈 Visual Intelligence
-- Pie charts for category spending
-- Time-series charts with anomaly markers
-- Category anomaly frequency charts
-
-### 📄 Export Reports
-- Download anomaly reports as:
-  - **CSV** (for analysis)
-  - **PDF** (for stakeholders)
+- 📂 Upload CSV or Excel files
+- 📊 Interactive financial dashboard
+- 🧠 AI-generated expense insights
+- 🔍 Anomaly detection
+- 📈 Monthly spending prediction
+- 🎨 Premium fintech UI
+- 📉 Dynamic charts using Chart.js
+- ⚡ Flask backend API
+- 🌐 Full-stack architecture
+- 🧾 Supports flexible expense datasets
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠 Tech Stack
 
-| Layer | Technologies |
-|------|-------------|
-| Language | Python |
-| UI | Streamlit |
-| Data | Pandas, NumPy |
-| ML | Scikit-learn (Linear Regression, Isolation Forest) |
-| Visualization | Matplotlib |
-| Reporting | ReportLab (PDF export) |
+### Frontend
+- HTML
+- CSS
+- JavaScript
+- Chart.js
+
+### Backend
+- Python
+- Flask
+- Pandas
+- Scikit-learn
+
+### AI / ML
+- Isolation Forest (Anomaly Detection)
+- Expense Forecasting
+- Intelligent Data Analysis
 
 ---
 
 ## 📂 Project Structure
+
 AI_Financial_Expense_Analyzer/
+
 │
-├── app.py # Streamlit application
-├── data_loader.py # CSV loading & validation
-├── preprocessing.py # Data cleaning & processing
-├── analysis.py # Core expense analytics
-├── insights.py # AI-generated insights
-├── prediction.py # Expense forecasting models
-├── anomaly_detection.py # ML anomaly detection
-├── visualizations.py # Charts & plots
-├── export_utils.py # CSV export
-├── pdf_report.py # PDF report generation
-├── sample_data/
-│ └── expenses.csv
+
+├── backend/
+
+│   ├── app.py
+
+│   ├── analysis.py
+
+│   ├── anomaly_detection.py
+
+│   ├── prediction.py
+
+│   ├── insights.py
+
+│   ├── preprocessing.py
+
+│   ├── templates/
+
+│   │   └── index.html
+
+│   └── static/
+
+│       ├── style.css
+
+│       └── script.js
+
+│
+
+├── uploads/
+
 ├── requirements.txt
+
 └── README.md
 
-## ▶️ How to Run Locally
+---
 
-### 1️⃣ Clone the repository
+## ⚙️ Installation
+
+### 1️⃣ Clone Repository
+
 ```bash
-git clone https://github.com/<your-username>/AI_Financial_Expense_Analyzer.git
-cd AI_Financial_Expense_Analyzer
+git clone <your-github-link>
+```
 
+### 2️⃣ Create Virtual Environment
+
+```bash
 python -m venv venv
-venv\Scripts\activate   # Windows
+```
 
-Install dependencies
+### 3️⃣ Activate Virtual Environment
+
+#### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+#### Mac/Linux
+
+```bash
+source venv/bin/activate
+```
+
+### 4️⃣ Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-4️⃣ Run the app
-streamlit run app.py
-Future Improvements
-Cloud deployment (Streamlit Cloud / AWS)
-User authentication
-Database-backed expense storage
-Category-level forecasting
-LLM-powered natural language financial advice
+### 5️⃣ Run Flask Server
 
-👨‍💻 Author
+```bash
+python app.py
+```
+
+### 6️⃣ Open Browser
+
+```text
+http://127.0.0.1:5000
+```
+
+---
+
+## 📊 Supported File Formats
+
+- CSV (.csv)
+- Excel (.xlsx)
+
+The system can intelligently detect:
+- Date columns
+- Amount columns
+- Category columns
+
+---
+
+## 🔮 Future Scope
+
+- 🤖 Agentic AI Financial Assistant
+- 🎙 Voice-based insights
+- 🧠 User memory system
+- ☁️ Cloud deployment
+- 👤 User authentication
+- 📱 Mobile responsive app
+- 💬 AI chatbot
+- 🏦 Bank statement integration
+
+---
+
+## 👨‍💻 Author
+
 Sankalp Satendra Singh
-MCA (AI/ML) | Data Analytics Intern
-Interested in AI, ML, Data Science, and FinTech
 
-#Why This Project Matters
-This project demonstrates:
-Real-world ML problem solving
-Explainable AI decisions
-Strong data storytelling
-End-to-end product thinking
+MCA (AI & ML)
+Ramdeobaba University
 
-#HOW TO DESCRIBE THIS ON RESUME (BONUS)
-
-AI Financial Expense Analyzer
-Built an end-to-end financial analytics dashboard using Python, Streamlit, and ML. Implemented anomaly detection with Isolation Forest, interactive sensitivity tuning, expense forecasting, and automated CSV/PDF reporting.
-
+---

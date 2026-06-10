@@ -63,7 +63,18 @@ async function uploadFile() {
 
         console.log("Response received");
 
-        const data = await response.json();
+        if (!response.ok) {
+
+    const errorText =
+        await response.text();
+
+    console.error(errorText);
+
+    return;
+}
+
+const data =
+    await response.json();
 
         console.log("DATA:", data);
 
@@ -105,8 +116,33 @@ async function uploadFile() {
 
             li.textContent = insight;
 
+
             insightList.appendChild(li);
         });
+
+        // =========================
+        // AGENTIC AI ADVICE
+        // =========================
+
+        const adviceBox =
+            document.getElementById(
+                "agentAdvice"
+            );
+
+        adviceBox.innerText =
+            data.agent_advice;
+
+        // =========================
+        // MULTI STEP REASONING
+        // =========================
+
+        const reasoningBox =
+            document.getElementById(
+                "reasoningBox"
+            );
+
+        reasoningBox.innerText =
+            data.reasoning;
 
         // ======================================
         // CHARTS
@@ -263,3 +299,76 @@ function createMonthlyChart(data) {
         }
     });
 }
+
+async function sendMessage() {
+
+     console.log("SEND MESSAGE CLICKED");
+
+    const input =
+        document.getElementById("chatInput");
+
+    const chatBox =
+        document.getElementById("chatBox");
+
+    const message =
+        input.value;
+
+    if (!message) return;
+
+    // USER MESSAGE
+
+    chatBox.innerHTML += `
+        <div class="message user">
+            ${message}
+        </div>
+    `;
+
+    input.value = "";
+
+    // SEND TO BACKEND
+
+    const response = await fetch(
+        "http://127.0.0.1:5000/chat",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                message: message
+            })
+        }
+    );
+
+
+    if (!response.ok) {
+
+    const errorText =
+        await response.text();
+
+    console.error(errorText);
+
+    return;
+}
+
+const data =
+    await response.json();
+
+    // BOT MESSAGE
+
+    chatBox.innerHTML += `
+        <div class="message bot">
+            ${data.response}
+<br><small>
+Memory Size: ${data.memory_size}
+</small>
+        </div>
+    `;
+
+    chatBox.scrollTop =
+        chatBox.scrollHeight;
+}
+
+

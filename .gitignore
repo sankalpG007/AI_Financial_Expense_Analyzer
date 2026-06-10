@@ -4,3 +4,4 @@ __pycache__/
 .env 
 .vscode/ 
 sample_data/ 
+goal.json

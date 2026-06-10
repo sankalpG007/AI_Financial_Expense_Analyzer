@@ -220,3 +220,52 @@ body {
         font-size: 34px;
     }
 }
+
+.chat-section{
+    margin-top:40px;
+    padding:25px;
+}
+
+#chatBox{
+    height:300px;
+    overflow-y:auto;
+    background:#111827;
+    border-radius:15px;
+    padding:15px;
+    margin-bottom:20px;
+}
+
+.message{
+    margin-bottom:15px;
+    padding:12px;
+    border-radius:10px;
+}
+
+.user{
+    background:#2563EB;
+    color:white;
+    text-align:right;
+}
+
+.bot{
+    background:#1F2937;
+    color:#00FFAA;
+}
+
+.chat-input-area{
+    display:flex;
+    gap:10px;
+}
+
+.chat-input-area input{
+    flex:1;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#111827;
+    color:white;
+}
+
+.chat-input-area button{
+    padding:14px 22px;
+}
