@@ -2,39 +2,42 @@ import pandas as pd
 
 
 def load_expense_data(file):
+    """
+    Load expense data from:
+    - CSV file path
+    - Excel file path
+    - Streamlit UploadedFile
+    """
 
-    # -----------------------------------
-    # READ FILE
-    # -----------------------------------
+    # Get filename when available
+    filename = getattr(file, "name", str(file))
 
-    if str(file).endswith(".csv"):
+    filename = str(filename).lower()
+
+    # CSV
+    if filename.endswith(".csv"):
         df = pd.read_csv(file)
 
-    elif str(file).endswith(".xlsx"):
+    # Excel
+    elif filename.endswith(".xlsx") or filename.endswith(".xls"):
         df = pd.read_excel(file)
 
     else:
         raise ValueError(
-            "Unsupported file format"
+            "Unsupported file format. Please upload a CSV or XLSX file."
         )
 
-    # -----------------------------------
-    # STANDARDIZE COLUMN NAMES
-    # -----------------------------------
-
+    # Standardize column names
     df.columns = [
-        col.lower().strip()
+        str(col).lower().strip()
         for col in df.columns
     ]
 
-    # -----------------------------------
-    # AUTO-DETECT DATE COLUMN
-    # -----------------------------------
-
+    # Possible column names
     date_keywords = [
         "date",
         "transaction date",
-        "time"
+        "time",
     ]
 
     amount_keywords = [
@@ -42,67 +45,80 @@ def load_expense_data(file):
         "debit",
         "expense",
         "price",
-        "cost"
+        "cost",
     ]
 
     category_keywords = [
         "category",
         "merchant",
-        "type"
+        "type",
     ]
 
-    # Detect columns
-    date_col = None
-    amount_col = None
-    category_col = None
+    # --------------------------------------------------
+    # Detect Date Column
+    # --------------------------------------------------
+
+    date_column = None
 
     for col in df.columns:
+        if any(keyword in col for keyword in date_keywords):
+            date_column = col
+            break
 
-        if any(k in col for k in date_keywords):
-            date_col = col
+    # --------------------------------------------------
+    # Detect Amount Column
+    # --------------------------------------------------
 
-        if any(k in col for k in amount_keywords):
-            amount_col = col
+    amount_column = None
 
-        if any(k in col for k in category_keywords):
-            category_col = col
+    for col in df.columns:
+        if any(keyword in col for keyword in amount_keywords):
+            amount_column = col
+            break
 
-    # -----------------------------------
-    # VALIDATION
-    # -----------------------------------
-
-    if not amount_col:
+    if amount_column is None:
         raise ValueError(
-            "No amount column detected"
+            "Could not find an amount column. "
+            "Use a column such as Amount, Expense, Debit, Price or Cost."
         )
 
-    # -----------------------------------
-    # RENAME TO STANDARD FORMAT
-    # -----------------------------------
+    # --------------------------------------------------
+    # Detect Category Column
+    # --------------------------------------------------
 
-    rename_map = {}
+    category_column = None
 
-    if date_col:
-        rename_map[date_col] = "date"
+    for col in df.columns:
+        if any(keyword in col for keyword in category_keywords):
+            category_column = col
+            break
 
-    if amount_col:
-        rename_map[amount_col] = "amount"
+    # --------------------------------------------------
+    # Rename Columns
+    # --------------------------------------------------
 
-    if category_col:
-        rename_map[category_col] = "category"
+    rename_map = {
+        amount_column: "amount",
+    }
+
+    if date_column:
+        rename_map[date_column] = "date"
+
+    if category_column:
+        rename_map[category_column] = "category"
 
     df = df.rename(columns=rename_map)
 
-    # -----------------------------------
-    # CREATE MISSING CATEGORY
-    # -----------------------------------
+    # --------------------------------------------------
+    # Missing Category
+    # --------------------------------------------------
 
     if "category" not in df.columns:
         df["category"] = "Other"
 
-    # -----------------------------------
-    # CREATE MISSING DATE
-    # -----------------------------------
+    # --------------------------------------------------
+    # Missing Date
+    # --------------------------------------------------
 
     if "date" not in df.columns:
         df["date"] = pd.Timestamp.today()

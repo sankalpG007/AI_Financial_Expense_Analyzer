@@ -5,7 +5,6 @@ pandas==2.3.3
 numpy==2.2.6
 scikit-learn==1.7.2
 openpyxl==3.1.5
-matplotlib==3.10.8
-reportlab==4.4.9
-google-genai
-python-dotenv
+streamlit==1.53.1
+google-genai==2.7.0
+python-dotenv==1.2.2
