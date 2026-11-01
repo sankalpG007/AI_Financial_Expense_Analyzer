@@ -3,10 +3,13 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+import os
+from dotenv import load_dotenv
 
 # Add backend directory to Python path
 BASE_DIR = Path(__file__).resolve().parent
 BACKEND_DIR = BASE_DIR / "backend"
+load_dotenv(BACKEND_DIR / ".env")
 
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
@@ -17,6 +20,10 @@ from analysis import total_spending, category_spending, monthly_spending
 from prediction import predict_next_month_expense
 from anomaly_detection import detect_anomalies
 from insights import generate_insights
+from nlp_engine import (
+    train_expense_classifier, predict_expense_category,
+    process_financial_query, semantic_transaction_search,
+)
 from tools import (
     financial_summary,
     generate_budget_plan,
@@ -304,6 +311,144 @@ if st.button(
 
     except Exception as e:
         st.error(f"Advisor error: {e}")
+
+
+
+# --------------------------------------------------
+# NLP INTELLIGENCE MODULE
+# --------------------------------------------------
+
+st.divider()
+st.header("🧠 NLP Intelligence")
+st.caption(
+    "Traditional NLP classification, intent detection, entity extraction, "
+    "and embedding-based transaction search."
+)
+
+nlp_tab1, nlp_tab2, nlp_tab3 = st.tabs([
+    "Expense Classifier", "Natural Language Assistant", "Semantic Search"
+])
+
+with nlp_tab1:
+    st.markdown("#### Transaction description classification")
+    if "description" not in df.columns:
+        st.warning(
+            "This dataset has no Description column. Upload data with transaction "
+            "descriptions to use the NLP classifier."
+        )
+    else:
+        st.caption(
+            "The uploaded Category column provides training labels. The model uses "
+            "TF-IDF features and Logistic Regression."
+        )
+        with st.form("nlp_classifier_form"):
+            transaction_text = st.text_input(
+                "Enter a transaction description",
+                placeholder="e.g. Uber ride to office",
+            )
+            classify_clicked = st.form_submit_button("Classify transaction")
+        if classify_clicked:
+            try:
+                with st.spinner("Training the lightweight text classifier..."):
+                    classifier_bundle = train_expense_classifier(df)
+                    prediction_result = predict_expense_category(
+                        classifier_bundle, transaction_text
+                    )
+                st.success(f"Predicted category: **{prediction_result['category']}**")
+                if prediction_result["confidence"] is not None:
+                    st.metric("Model confidence", f"{prediction_result['confidence']:.1%}")
+                st.caption(
+                    f"Trained on {classifier_bundle['training_samples']} labelled transactions. "
+                    "Confidence is a model score, not a guarantee."
+                )
+                if classifier_bundle["metrics"]:
+                    metrics = classifier_bundle["metrics"]
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("Holdout accuracy", f"{metrics['accuracy']:.1%}")
+                    m2.metric("Precision (weighted)", f"{metrics['precision_weighted']:.1%}")
+                    m3.metric("Recall (weighted)", f"{metrics['recall_weighted']:.1%}")
+                    m4.metric("F1 (weighted)", f"{metrics['f1_weighted']:.1%}")
+                    st.caption(
+                        f"Holdout evaluation: {metrics['test_samples']} rows. "
+                        "Small or imbalanced datasets can produce unstable metrics."
+                    )
+                else:
+                    st.info("Not enough examples per category for a reliable holdout evaluation.")
+            except Exception as exc:
+                st.error(f"Classifier could not run: {exc}")
+
+with nlp_tab2:
+    st.markdown("#### Ask questions in natural language")
+    st.caption(
+        "A lightweight intent router extracts entities and calls deterministic Python analytics. "
+        "Gemini remains the optional fallback for questions outside the supported intents."
+    )
+    if "nlp_chat_history" not in st.session_state:
+        st.session_state.nlp_chat_history = []
+    for item in st.session_state.nlp_chat_history:
+        with st.chat_message(item["role"]):
+            st.write(item["content"])
+    with st.form("nlp_query_form", clear_on_submit=True):
+        nlp_question = st.text_input(
+            "Your question",
+            placeholder="How much did I spend on Food?",
+        )
+        ask_clicked = st.form_submit_button("Ask")
+    if ask_clicked and nlp_question.strip():
+        routed = process_financial_query(nlp_question, df, analysis_data)
+        answer = routed["answer"]
+        if answer is None:
+            if os.getenv("GEMINI_API_KEY"):
+                try:
+                    from llm import ask_llm
+                    answer = ask_llm(nlp_question, analysis_data)
+                except Exception as exc:
+                    answer = f"Gemini fallback unavailable: {exc}"
+            else:
+                answer = (
+                    "I couldn't map that question to a supported financial intent. "
+                    "Try asking for a summary, category spending, forecast, anomalies, "
+                    "monthly trend, or matching transactions."
+                )
+        st.session_state.nlp_chat_history.append({"role": "user", "content": nlp_question})
+        st.session_state.nlp_chat_history.append({"role": "assistant", "content": answer})
+        st.rerun()
+    if st.session_state.nlp_chat_history:
+        last_user = next((x["content"] for x in reversed(st.session_state.nlp_chat_history) if x["role"] == "user"), "")
+        if last_user:
+            routed = process_financial_query(last_user, df, analysis_data)
+            with st.expander("Inspect NLP interpretation"):
+                st.write("**Detected intent:**", routed["intent"])
+                st.json(routed["entities"])
+
+with nlp_tab3:
+    st.markdown("#### Search transactions by meaning")
+    st.caption(
+        "Uses Gemini embeddings when GEMINI_API_KEY is configured; otherwise it "
+        "falls back to TF-IDF cosine similarity."
+    )
+    if "description" not in df.columns:
+        st.warning("Add a Description column to your uploaded data to enable transaction search.")
+    else:
+        with st.form("semantic_search_form"):
+            semantic_query = st.text_input(
+                "What kind of transaction are you looking for?",
+                placeholder="food delivery, supermarket purchases, travel costs...",
+            )
+            search_clicked = st.form_submit_button("Search transactions")
+        if search_clicked and semantic_query.strip():
+            try:
+                search_result = semantic_transaction_search(df, semantic_query, top_k=5)
+                st.caption(f"Retrieval method: {search_result['method']}")
+                if search_result["results"]:
+                    result_df = pd.DataFrame(search_result["results"])
+
+                    result_df["similarity"] = result_df["similarity"].map(lambda x: f"{x:.3f}")
+                    st.dataframe(result_df, width="stretch", hide_index=True)
+                else:
+                    st.info("No transaction descriptions were available to search.")
+            except Exception as exc:
+                st.error(f"Semantic search failed: {exc}")
 
 
 # --------------------------------------------------

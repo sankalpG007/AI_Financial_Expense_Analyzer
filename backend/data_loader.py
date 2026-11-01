@@ -54,6 +54,14 @@ def load_expense_data(file):
         "type",
     ]
 
+    description_keywords = [
+        "description",
+        "transaction description",
+        "narration",
+        "details",
+        "note",
+    ]
+
     # --------------------------------------------------
     # Detect Date Column
     # --------------------------------------------------
@@ -94,6 +102,16 @@ def load_expense_data(file):
             break
 
     # --------------------------------------------------
+    # Detect Description Column
+    # --------------------------------------------------
+
+    description_column = None
+    for col in df.columns:
+        if any(keyword in col for keyword in description_keywords):
+            description_column = col
+            break
+
+    # --------------------------------------------------
     # Rename Columns
     # --------------------------------------------------
 
@@ -106,6 +124,9 @@ def load_expense_data(file):
 
     if category_column:
         rename_map[category_column] = "category"
+
+    if description_column:
+        rename_map[description_column] = "description"
 
     df = df.rename(columns=rename_map)
 

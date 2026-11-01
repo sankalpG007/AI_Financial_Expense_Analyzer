@@ -13,6 +13,9 @@ An AI-powered financial analytics platform that analyzes expense data, detects u
 - 💡 Automated financial insights
 - 🧠 Rule-based financial tools and reasoning
 - 🤖 Gemini-powered financial assistant
+- 🧠 NLP expense classification using TF-IDF + Logistic Regression
+- 🧭 Natural-language intent detection and financial entity extraction
+- 🔎 Transaction similarity search using Gemini embeddings with TF-IDF fallback
 - 💬 Conversational REST API
 - 🌐 Flask REST API
 - 📊 Interactive Streamlit dashboard
@@ -41,6 +44,12 @@ An AI-powered financial analytics platform that analyzes expense data, detects u
                                                 ↓
                                            Gemini LLM
 
+                     NLP Intelligence Layer
+             ┌──────────────┼────────────────┐
+             ↓              ↓                ↓
+       TF-IDF Classifier  Intent + NER   Gemini Embeddings
+       Logistic Regression  Patterns     Cosine Similarity
+
 🧠 AI & Machine Learning
 Expense Forecasting
 
@@ -53,6 +62,16 @@ Uses Scikit-learn IsolationForest to identify unusual transactions based on tran
 Gemini Financial Assistant
 
 Gemini is used to generate natural-language financial assistance using structured financial analysis as context.
+
+### NLP Intelligence
+
+- **Expense classification:** TF-IDF (unigrams + bigrams) converts transaction descriptions into text features; Logistic Regression predicts the category. The uploaded `category` column is used as the training label.
+- **Intent detection:** A lightweight, explainable intent router identifies requests such as spending summary, category spending, forecast, anomaly search, monthly trend, and semantic transaction search.
+- **Entity extraction:** Pattern- and dictionary-based extraction identifies amounts, category names, time periods, and merchant phrases. This is lightweight rule-based extraction, not a trained NER model.
+- **Semantic transaction search:** The system requests text embeddings from Gemini (`gemini-embedding-001`) and ranks transaction descriptions with cosine similarity. If the Gemini embedding service or API key is unavailable, it falls back to TF-IDF cosine similarity; the UI reports which method was used.
+- **Gemini fallback:** Questions outside the supported deterministic intents can be passed to the existing Gemini assistant when `GEMINI_API_KEY` is configured.
+
+The classifier learns from the uploaded file, so useful predictions require a `description` column and meaningful labelled examples in `category`. The included sample data is small and intended for demonstration. Holdout metrics are shown when the class distribution permits evaluation; do not treat metrics from a small sample as production performance.
 
 The system also contains deterministic rule-based tools for:
 
@@ -177,6 +196,32 @@ curl -X POST \
 Financial Assistant
 POST /chat
 
+NLP endpoints (upload a file through `/analyze` first):
+
+Classify a transaction description:
+
+```bash
+curl -X POST http://127.0.0.1:5000/nlp/classify \
+  -H "Content-Type: application/json" \
+  -d '{"description":"Uber ride to office"}'
+```
+
+Understand a financial question:
+
+```bash
+curl -X POST http://127.0.0.1:5000/nlp/query \
+  -H "Content-Type: application/json" \
+  -d '{"message":"How much did I spend on Food last month?"}'
+```
+
+Search transaction descriptions:
+
+```bash
+curl -X POST http://127.0.0.1:5000/nlp/search \
+  -H "Content-Type: application/json" \
+  -d '{"query":"food delivery and restaurant expenses"}'
+```
+
 Example:
 
 curl -X POST \
@@ -190,8 +235,9 @@ The application can process CSV and Excel files containing fields representing:
 Date
 Amount
 Category
+Description (recommended for NLP classification and transaction search)
 
-The data loader performs flexible column detection and preprocessing before analysis.
+The data loader performs flexible column detection and preprocessing before analysis. Description columns can be named Description, Transaction Description, Narration, Details or Note.
 
 🔄 Processing Workflow
 Upload Expense File

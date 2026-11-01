@@ -12,6 +12,10 @@ from analysis import total_spending, category_spending, monthly_spending
 from prediction import predict_next_month_expense
 from anomaly_detection import detect_anomalies
 from insights import generate_insights
+from nlp_engine import (
+    train_expense_classifier, predict_expense_category,
+    process_financial_query, semantic_transaction_search,
+)
 from flask_cors import CORS
 from tools import (
     generate_budget_plan,
@@ -26,6 +30,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Add this global variable here
 latest_analysis = {}
+latest_dataframe = None
 chat_memory = []
 
 @app.route("/")
@@ -258,6 +263,7 @@ def chat():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
+    global latest_dataframe
     try:
         print("Request received")
         
@@ -275,6 +281,7 @@ def analyze():
         print("Data loaded")
         
         df = preprocess_data(df)
+        latest_dataframe = df.copy()
         print("Data preprocessed")
         
         # -------------------------
@@ -353,6 +360,61 @@ def analyze():
         return jsonify({
             "error": str(e)
         }), 500
+
+
+@app.route("/nlp/classify", methods=["POST"])
+def nlp_classify():
+    if latest_dataframe is None:
+        return jsonify({"error": "Upload and analyze an expense file first."}), 400
+    try:
+        payload = request.get_json(silent=True) or {}
+        description = payload.get("description", "")
+        bundle = train_expense_classifier(latest_dataframe)
+        result = predict_expense_category(bundle, description)
+        return jsonify({
+            "prediction": result,
+            "training_samples": bundle["training_samples"],
+            "evaluation": bundle["metrics"],
+        })
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 400
+
+
+@app.route("/nlp/query", methods=["POST"])
+def nlp_query():
+    if latest_dataframe is None or not latest_analysis:
+        return jsonify({"error": "Upload and analyze an expense file first."}), 400
+    payload = request.get_json(silent=True) or {}
+    message = payload.get("message", "").strip()
+    if not message:
+        return jsonify({"error": "A message is required."}), 400
+    try:
+        result = process_financial_query(message, latest_dataframe, latest_analysis)
+        if result["answer"] is None:
+            if os.getenv("GEMINI_API_KEY"):
+                result["answer"] = ask_llm(message, latest_analysis)
+            else:
+                result["answer"] = (
+                    "I couldn't identify a supported intent. Try asking for a summary, "
+                    "category spending, forecast, anomalies, monthly trend, or transaction search."
+                )
+        return jsonify(result)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/nlp/search", methods=["POST"])
+def nlp_search():
+    if latest_dataframe is None:
+        return jsonify({"error": "Upload and analyze an expense file first."}), 400
+    payload = request.get_json(silent=True) or {}
+    query = payload.get("query", "").strip()
+    if not query:
+        return jsonify({"error": "A search query is required."}), 400
+    try:
+        return jsonify(semantic_transaction_search(latest_dataframe, query, top_k=5))
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 400
 
 if __name__ == "__main__":
     app.run()
